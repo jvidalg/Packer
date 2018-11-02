@@ -1,0 +1,9 @@
+---
+- hosts: test-host
+  vars:
+    docker_daemon_config:
+      storage-driver: devicemapper
+      storage-opts:
+        - "dm.directlvm_device=/dev/sdb2"
+  roles:
+    - haxorof.docker-ce

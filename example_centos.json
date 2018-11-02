@@ -1,0 +1,66 @@
+{
+    "variables": {
+      "aws_access_key": "{{env `AWS_ACCESS_KEY`}}",
+      "aws_secret_key": "{{env `AWS_SECRET_KEY`}}",
+      "ami": "ami-9887c6e7",
+      "vpc_id": "vpc-9d6d86e7",
+      "subnet_id": "subnet-97d270b9",
+      "region": "us-east-1",
+      "az": "us-east-1b"
+    },
+
+    "sensitive-variables": ["aws_access_key", "aws_secret_key","vpc_id", "subnet_id"],
+    
+    "builders": [
+      {
+        "ami_description": "Custom image provisioned with ansible and bash",
+        "availability_zone": "{{user `az`}}",
+        "type": "amazon-ebs",
+        "access_key": "{{user `aws_access_key` }}",
+        "secret_key": "{{user `aws_secret_key` }}",
+        "vpc_id": "{{user `vpc_id`}}",
+        "subnet_id": "{{user `subnet_id`}}",
+        "run_tags": {
+            "Name": "CentOs Linux",
+            "task": "Image deployment",
+            "Type": "Packer.io"
+          },
+        "tags": {
+          "Name": "AWS Linux Nginx Docker",
+          "Type": "Packer.io"
+        },
+        "region": "{{user `region`}}",
+        "source_ami": "{{user `ami`}}",
+        "instance_type": "t2.micro",
+        "ssh_username": "centos",
+        "ami_name": "Custom Image {{timestamp}}",
+        "ssh_pty": "true"
+      }
+    ],
+    "provisioners": [
+      {
+        "type": "shell",
+        "remote_path": "/home/centos/setup_centos.sh",
+        "script": "bash/setup_centos.sh",
+	"expect_disconnect": "false"
+      },
+      {
+        "type": "ansible-local",
+        "playbook_file": "ansible/aws-packer.yml",
+        "playbook_dir": "ansible",
+        "staging_directory": "/home/centos/ansible",
+        "inventory_file": "ansible/inventory/aws/hosts",
+        "extra_arguments": "-vvv"
+    },
+    {
+        "type": "shell",
+        "execute_command": "{{ .Vars }} sudo -E /bin/sh -ex '{{ .Path }}'",
+        "inline": [
+            "sudo /usr/bin/pip uninstall -y ansible",
+            "sudo rm -rf /home/centos/ansible", 
+            "echo Ansible uninstalled"
+        ]
+    }
+  ]
+}
+  

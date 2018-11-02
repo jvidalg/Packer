@@ -1,0 +1,15 @@
+---
+
+- hosts: all
+  become: yes
+  become_method: sudo
+  roles: 
+    - common
+    - docker-ce-master
+    - nginx
+    - mariadb
+    - rabbitmq
+#    - AppDynamics-Installation
+#    - docker
+#    - beats
+    
